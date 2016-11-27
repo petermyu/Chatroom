@@ -17,7 +17,7 @@ import javafx.stage.Stage;
 public class MultiThreadServer extends Application
 { // Text area for displaying contents 
 	private TextArea ta = new TextArea(); 
-
+	private ArrayList<PrintWriter> clientOutputStreams;
 	// Number a client 
 	private int clientNo = 0; 
 	private List<String> clientList = new ArrayList<String>();
@@ -34,12 +34,13 @@ public class MultiThreadServer extends Application
 				ServerSocket serverSocket = new ServerSocket(8000); 
 				ta.appendText("MultiThreadServer started at " 
 						+ new Date() + '\n'); 
-
+				clientOutputStreams = new ArrayList<PrintWriter>();
 
 				while (true) { 
 					// Listen for a new connection request 
 					Socket socket = serverSocket.accept(); 
-
+					PrintWriter writer = new PrintWriter(socket.getOutputStream());
+					clientOutputStreams.add(writer);
 					// Increment clientNo 
 					clientNo++; 
 
@@ -67,37 +68,32 @@ public class MultiThreadServer extends Application
 			}
 		}).start();
 	}
-
+	private void notifyClients(String message) {
+		for (PrintWriter writer : clientOutputStreams) {
+			writer.println(message);
+			System.out.println("written");
+			writer.flush();
+		}
+	}
 
 	// Define the thread class for handling
 	class HandleAClient implements Runnable {
 		private Socket socket; // A connected socket
+		private BufferedReader reader;
 		/** Construct a thread */ 
-		public HandleAClient(Socket socket) { 
+		public HandleAClient(Socket socket) throws IOException { 
 			this.socket = socket;
+			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		}
 		/** Run a thread */
 		public void run() { 
+			String message;
 			try {
-				// Create data input and output streams
-				DataInputStream inputFromClient = new DataInputStream( socket.getInputStream());
-				DataOutputStream outputToClient = new DataOutputStream( socket.getOutputStream());
-				// Continuously serve the client
-				while (true) { 
-					// Receive radius from the client 
-					double radius = inputFromClient.readDouble();
-
-					// Compute area
-					double area = radius * radius * Math.PI; 
-					// Send area back to the client
-					outputToClient.writeDouble(area);
-					Platform.runLater(() -> { 
-						ta.appendText("radius received from client: " +
-								radius + '\n'); 
-						ta.appendText("Area found: " + area + '\n');
-					});
+				while ((message = reader.readLine()) != null) {
+					System.out.println("read " + message);
+					notifyClients(message);
 				}
-			} catch(IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
