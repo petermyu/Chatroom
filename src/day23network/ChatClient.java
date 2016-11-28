@@ -25,7 +25,7 @@ import java.awt.event.*;
 public class ChatClient extends Application{
 	private BufferedReader reader;
 	private PrintWriter writer;
-	private String chatText;
+	private static String chatText = "";
 	
 	public String getText(){
 		return chatText;
@@ -37,7 +37,7 @@ public class ChatClient extends Application{
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		initView(primaryStage);
-	//	setUpNetworking();
+		
 	}
 
 	private void initView(Stage primaryStage) {
@@ -72,17 +72,21 @@ public class ChatClient extends Application{
 		Scene scene = new Scene(grid, 500,500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
+		try {
+			setUpNetworking();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	private void setChatPane(Stage primaryStage){
 		GridPane grid = new GridPane();
 		grid.setHgap(10);
 		grid.setVgap(10);
 		TextField inputMessage = new TextField();
-		final TextField chatField = new TextField();
-		chatField.setText("chat started \n aefa");
+		final TextArea chatField = new TextArea();
 		chatField.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		
-		chatField.setDisable(true);
 		Text user = new Text();
 		Text pword = new Text();
 		Button send = new Button();
@@ -93,20 +97,14 @@ public class ChatClient extends Application{
 		Scene scene = new Scene(grid,800,400);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		try{
-		setUpNetworking();
-		}
-		catch(Exception e){
-			System.out.println(e);
-		}
-	/*
-		Platform.runLater(new Runnable(){
+	
+/*		Platform.runLater(new Runnable(){
 			@Override
 			public void run(){
 			String response;
 			try {
 				response = reader.readLine();
-				chatField.appendText(response + "\n");
+				chatField.setText(chatText);
 			} 
 			catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -114,13 +112,22 @@ public class ChatClient extends Application{
 			}
 			
 			}
-		});*/
+		}); */
+		send.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+            	writer.println(inputMessage.getText());
+        		writer.flush();
+        		inputMessage.clear();
+            }
+        });
 		Task task = new Task<Void>() {
 		    @Override public Void call() {
 		    	String response;
 				try {
 					while ((response = reader.readLine()) != null) {
-					chatField.appendText(response + "\n");
+					System.out.println("received " + response);
+					chatField.setText(chatText);
 				}
 				} 
 				catch (IOException e) {
@@ -132,14 +139,8 @@ public class ChatClient extends Application{
 		    }
 		};
 		Thread updatechat = new Thread(task);
-		send.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-            	writer.println(inputMessage.getText());
-        		writer.flush();
-        		inputMessage.clear();
-            }
-        });
+		updatechat.start();
+
 	}
 
 	private void setUpNetworking() throws Exception {
@@ -167,21 +168,15 @@ public class ChatClient extends Application{
 		public void run() {
 			String message;
 			try {
-				while ((message = reader.readLine()) != null) {
+				while ((message = reader.readLine()) != null) {	
 					chatText += (message + "\n");
+					System.out.println(chatText);
 				}
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
 		}
 	}
-	class ChatUpdater implements Runnable{
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			
-		}}
 
 
 }
