@@ -26,7 +26,7 @@ public class ChatClient extends Application{
 	private BufferedReader reader;
 	private PrintWriter writer;
 	private static String chatText = "";
-	
+	private TextArea chatField = new TextArea();
 	public String getText(){
 		return chatText;
 	}
@@ -84,9 +84,9 @@ public class ChatClient extends Application{
 		grid.setHgap(10);
 		grid.setVgap(10);
 		TextField inputMessage = new TextField();
-		final TextArea chatField = new TextArea();
-		chatField.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		
+		chatField.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+		chatField.setText("");
 		Text user = new Text();
 		Text pword = new Text();
 		Button send = new Button();
@@ -125,9 +125,11 @@ public class ChatClient extends Application{
 		    @Override public Void call() {
 		    	String response;
 				try {
+					System.out.print("run");
+					response = reader.readLine();
 					while ((response = reader.readLine()) != null) {
 					System.out.println("received " + response);
-					chatField.setText(chatText);
+					chatField.appendText(response);
 				}
 				} 
 				catch (IOException e) {
@@ -137,9 +139,10 @@ public class ChatClient extends Application{
 				return null;
 		      
 		    }
-		};
+		};	
 		Thread updatechat = new Thread(task);
 		updatechat.start();
+		updatechat.setPriority(Thread.MAX_PRIORITY-1);
 
 	}
 
@@ -150,8 +153,9 @@ public class ChatClient extends Application{
 		reader = new BufferedReader(streamReader);
 		writer = new PrintWriter(sock.getOutputStream());
 		System.out.println("networking established");
-		Thread readerThread = new Thread(new IncomingReader());
-		readerThread.start();
+	//	Thread readerThread = new Thread(new IncomingReader());
+	//	readerThread.start();
+	//	readerThread.setPriority(Thread.MAX_PRIORITY);
 	}
 
 	/*class SendButtonListener implements ActionListener {
@@ -166,15 +170,17 @@ public class ChatClient extends Application{
 
 	class IncomingReader implements Runnable {
 		public void run() {
+			System.out.print("running");
 			String message;
 			try {
-				while ((message = reader.readLine()) != null) {	
-					chatText += (message + "\n");
-					System.out.println(chatText);
-				}
-			} catch (IOException ex) {
-				ex.printStackTrace();
+				message = reader.readLine();
+				chatText += (message + "\n");
+				System.out.println(chatText);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
 		}
 	}
 
