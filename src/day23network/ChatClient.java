@@ -28,13 +28,8 @@ public class ChatClient extends Application{
 	private BufferedReader reader;
 	private PrintWriter writer;
 	private static String chatText = "";
+	private String username;
 	private TextArea chatField = new TextArea();
-	public String getText(){
-		return chatText;
-	}
-	public void setText(String text){
-		chatText = text;
-	}
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -59,7 +54,16 @@ public class ChatClient extends Application{
 		login.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-               setChatPane(primaryStage);
+            	username = userName.getText();
+            //	writer.println(username);
+            //	writer.flush();
+       		try {
+    			setUpNetworking();
+    		} catch (Exception e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+            	setChatPane(primaryStage);
             }
         });
 		
@@ -74,12 +78,12 @@ public class ChatClient extends Application{
 		Scene scene = new Scene(grid, 500,500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		try {
+/*		try {
 			setUpNetworking();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 	private void setChatPane(Stage primaryStage){
 		GridPane grid = new GridPane();
@@ -89,8 +93,6 @@ public class ChatClient extends Application{
 		
 		chatField.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		chatField.setText("");
-		Text user = new Text();
-		Text pword = new Text();
 		Button send = new Button();
 		send.setText("Send");
 		grid.add(chatField, 1, 0);
@@ -99,29 +101,13 @@ public class ChatClient extends Application{
 		Scene scene = new Scene(grid,800,400);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-	
-/*		Platform.runLater(new Runnable(){
-			@Override
-			public void run(){
-			String response;
-			try {
-				response = reader.readLine();
-				chatField.setText(chatText);
-			} 
-			catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			}
-		}); */
-		
 		
 		send.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
             	if(inputMessage.getText() != null){
-	            	writer.println(inputMessage.getText());
+	            	writer.println(username + " > " +inputMessage.getText());
+	            	System.out.println(username);
 	        		writer.flush();
 	        		inputMessage.clear();
             	}
@@ -134,7 +120,7 @@ public class ChatClient extends Application{
 	        {
 	        	if(inputMessage.getText() != null){
 		        	if (ke.getCode() == KeyCode.ENTER)  {
-		        	writer.println(inputMessage.getText());
+		        	writer.println(username + " > " + inputMessage.getText());
 	        		writer.flush();
 	        		inputMessage.clear();
 		        	}
@@ -145,8 +131,8 @@ public class ChatClient extends Application{
 		    @Override public Void call() {
 		    	String response;
 				try {
-					System.out.print("run");
 					response = reader.readLine();
+					synchronized(reader){
 					while ((response = reader.readLine()) != null) {
 						System.out.println("received " + response);
 						chatField.appendText(response + "\n");
@@ -158,6 +144,7 @@ public class ChatClient extends Application{
 						send.setDisable(false);
 					}*/
 				} 
+				}
 				catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -179,6 +166,9 @@ public class ChatClient extends Application{
 		reader = new BufferedReader(streamReader);
 		writer = new PrintWriter(sock.getOutputStream());
 		System.out.println("networking established");
+		//send username before chat starts
+		writer.println(username + " joined the chat");
+		writer.flush();
 	//	Thread readerThread = new Thread(new IncomingReader());
 	//	readerThread.start();
 	//	readerThread.setPriority(Thread.MAX_PRIORITY);

@@ -1,10 +1,13 @@
+package day23network;
 
 
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -21,6 +24,7 @@ public class MultiThreadServer extends Application
 	// Number a client 
 	private int clientNo = 0; 
 	private List<String> clientList = new ArrayList<String>();
+	private Map<String,String> userList;
 	@Override // Override the start method in the Application class 
 	public void start(Stage primaryStage) { 
 		// Create a scene and place it in the stage 
@@ -35,16 +39,19 @@ public class MultiThreadServer extends Application
 				ta.appendText("MultiThreadServer started at " 
 						+ new Date() + '\n'); 
 				clientOutputStreams = new ArrayList<PrintWriter>();
-
+				userList = new HashMap<String,String>();
 				while (true) { 
 					// Listen for a new connection request 
 					Socket socket = serverSocket.accept(); 
 					PrintWriter writer = new PrintWriter(socket.getOutputStream());
+					InetAddress inetAddress = socket.getInetAddress();
 					clientOutputStreams.add(writer);
-					// Increment clientNo 
+				//	userList.put(inetAddress.getHostName(), writer);
 					clientNo++; 
-
-					Platform.runLater( () -> { 
+					
+					
+					
+				/*	Platform.runLater( () -> { 
 						// Display the client number 
 						ta.appendText("Starting thread for client " + clientNo +
 								" at " + new Date() + '\n'); 
@@ -56,11 +63,11 @@ public class MultiThreadServer extends Application
 						ta.appendText("Client " + clientNo + "'s IP Address is " 
 								+ inetAddress.getHostAddress() + "\n");
 						clientList.add(inetAddress.getHostAddress());
-					}); 
+					}); */
 						
 
 					// Create and start a new thread for the connection
-					new Thread(new HandleAClient(socket)).start();
+					new Thread(new HandleAClient(inetAddress.getHostName(),socket)).start();
 				} 
 			} 
 			catch(IOException ex) { 
@@ -70,9 +77,14 @@ public class MultiThreadServer extends Application
 	}
 	private void notifyClients(String message) {
 		for (PrintWriter writer : clientOutputStreams) {
+			String user = userList.get(writer);
 			writer.println(message);
-			System.out.println("written");
+			if(message == "null"){
+				System.out.println("error in " + user);
+			}
 			writer.flush();
+			System.out.println("written");
+			
 		}
 	}
 
@@ -80,13 +92,19 @@ public class MultiThreadServer extends Application
 	class HandleAClient implements Runnable {
 		private Socket socket; // A connected socket
 		private BufferedReader reader;
+		private boolean flag;
+		private String hostname;
 		/** Construct a thread */ 
-		public HandleAClient(Socket socket) throws IOException { 
+		public HandleAClient(String hostname, Socket socket) throws IOException { 
 			this.socket = socket;
+			this.flag = false;
+			this.hostname = hostname;
 			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		}
 		/** Run a thread */
 		public void run() { 
+			
+			
 			String message;
 			try {
 				while ((message = reader.readLine()) != null) {
@@ -96,6 +114,7 @@ public class MultiThreadServer extends Application
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			
 		}
 	}
 	
