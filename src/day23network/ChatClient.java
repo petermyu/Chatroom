@@ -9,6 +9,8 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.input.*;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -113,14 +115,32 @@ public class ChatClient extends Application{
 			
 			}
 		}); */
+		
+		
 		send.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-            	writer.println(inputMessage.getText());
-        		writer.flush();
-        		inputMessage.clear();
+            	if(inputMessage.getText() != null){
+	            	writer.println(inputMessage.getText());
+	        		writer.flush();
+	        		inputMessage.clear();
+            	}
             }
         });
+		inputMessage.setOnKeyPressed(new EventHandler<KeyEvent>()
+	    {
+	        @Override
+	        public void handle(KeyEvent ke)
+	        {
+	        	if(inputMessage.getText() != null){
+		        	if (ke.getCode() == KeyCode.ENTER)  {
+		        	writer.println(inputMessage.getText());
+	        		writer.flush();
+	        		inputMessage.clear();
+		        	}
+	        	}
+	        }
+	    });
 		Task task = new Task<Void>() {
 		    @Override public Void call() {
 		    	String response;
@@ -128,9 +148,15 @@ public class ChatClient extends Application{
 					System.out.print("run");
 					response = reader.readLine();
 					while ((response = reader.readLine()) != null) {
-					System.out.println("received " + response);
-					chatField.appendText(response);
-				}
+						System.out.println("received " + response);
+						chatField.appendText(response + "\n");
+					}
+					/*if(inputMessage.getText() == null){
+						send.setDisable(true);
+					}
+					else{
+						send.setDisable(false);
+					}*/
 				} 
 				catch (IOException e) {
 					// TODO Auto-generated catch block
