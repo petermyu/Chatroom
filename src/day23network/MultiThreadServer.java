@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -20,11 +21,16 @@ import javafx.stage.Stage;
 public class MultiThreadServer extends Application
 { // Text area for displaying contents 
 	private TextArea ta = new TextArea(); 
-	private ArrayList<PrintWriter> clientOutputStreams;
+	private static ArrayList<PrintWriter> clientOutputStreams;
 	// Number a client 
 	private int clientNo = 0; 
 	private List<String> clientList = new ArrayList<String>();
 	private Map<String,String> userList;
+	private String message;
+	private ClientObservable ov = new ClientObservable();
+	public static ArrayList<PrintWriter> getclientOutputStreams(){
+		return clientOutputStreams;
+	}
 	@Override // Override the start method in the Application class 
 	public void start(Stage primaryStage) { 
 		// Create a scene and place it in the stage 
@@ -40,32 +46,17 @@ public class MultiThreadServer extends Application
 						+ new Date() + '\n'); 
 				clientOutputStreams = new ArrayList<PrintWriter>();
 				userList = new HashMap<String,String>();
+				
 				while (true) { 
 					// Listen for a new connection request 
 					Socket socket = serverSocket.accept(); 
-					PrintWriter writer = new PrintWriter(socket.getOutputStream());
+					//PrintWriter writer = new PrintWriter(socket.getOutputStream());
+					ClientObserver writer = new ClientObserver(socket.getOutputStream());
 					InetAddress inetAddress = socket.getInetAddress();
 					clientOutputStreams.add(writer);
 				//	userList.put(inetAddress.getHostName(), writer);
 					clientNo++; 
-					
-					
-					
-				/*	Platform.runLater( () -> { 
-						// Display the client number 
-						ta.appendText("Starting thread for client " + clientNo +
-								" at " + new Date() + '\n'); 
-
-						// Find the client's host name, and IP address 
-						InetAddress inetAddress = socket.getInetAddress();
-						ta.appendText("Client " + clientNo + "'s host name is "
-								+ inetAddress.getHostName() + "\n");
-						ta.appendText("Client " + clientNo + "'s IP Address is " 
-								+ inetAddress.getHostAddress() + "\n");
-						clientList.add(inetAddress.getHostAddress());
-					}); */
-						
-
+					ov.addObserver(writer);
 					// Create and start a new thread for the connection
 					new Thread(new HandleAClient(inetAddress.getHostName(),socket)).start();
 				} 
@@ -77,19 +68,13 @@ public class MultiThreadServer extends Application
 	}
 	private void notifyClients(String message) {
 		for (PrintWriter writer : clientOutputStreams) {
-			String user = userList.get(writer);
 			writer.println(message);
-			if(message == "null"){
-				System.out.println("error in " + user);
-			}
 			writer.flush();
-			System.out.println("written");
-			
 		}
 	}
 
 	// Define the thread class for handling
-	class HandleAClient implements Runnable {
+	class HandleAClient extends Observable implements Runnable {
 		private Socket socket; // A connected socket
 		private BufferedReader reader;
 		private boolean flag;
@@ -103,21 +88,28 @@ public class MultiThreadServer extends Application
 		}
 		/** Run a thread */
 		public void run() { 
-			
-			
 			String message;
 			try {
 				while ((message = reader.readLine()) != null) {
 					System.out.println("read " + message);
-					notifyClients(message);
-				}
+					setMessage(message);
+					System.out.println(ov.countObservers());
+					ov.setChange();
+					System.out.println(ov.hasChanged());
+					ov.notifyObservers(message);			
+					}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			
 		}
 	}
-	
+	public void setMessage(String message){
+		this.message = message;
+	}
+	public String getMessage(){
+		return this.message;
+	}
 	public static void main(String[] args) {
 		launch(args);
 	}

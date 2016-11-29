@@ -2,6 +2,12 @@ package day23network;
 
 import java.io.*;
 import java.net.*;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Observable;
+import java.util.Observer;
+
 import javax.swing.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -30,7 +36,7 @@ public class ChatClient extends Application{
 	private static String chatText = "";
 	private String username;
 	private TextArea chatField = new TextArea();
-	
+	private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss");
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		initView(primaryStage);
@@ -48,6 +54,8 @@ public class ChatClient extends Application{
 		
 		user.setText("Username : ");
 		pword.setText("Password : ");
+		password.setDisable(true);
+		
 		login.setText("Login");
 		register.setText("Register");
 		
@@ -120,7 +128,8 @@ public class ChatClient extends Application{
 	        {
 	        	if(inputMessage.getText() != null){
 		        	if (ke.getCode() == KeyCode.ENTER)  {
-		        	writer.println(username + " > " + inputMessage.getText());
+		        	String time = "[" + sdf.format(new Timestamp(new Date().getTime())) + "]";
+		        	writer.println(username + " " + time + " "+ " > " + inputMessage.getText());
 	        		writer.flush();
 	        		inputMessage.clear();
 		        	}
@@ -167,7 +176,8 @@ public class ChatClient extends Application{
 		writer = new PrintWriter(sock.getOutputStream());
 		System.out.println("networking established");
 		//send username before chat starts
-		writer.println(username + " joined the chat");
+		Timestamp ts = new Timestamp(new Date().getTime());
+		writer.println(username + " joined the chat" + " [" + ts + "]");
 		writer.flush();
 	//	Thread readerThread = new Thread(new IncomingReader());
 	//	readerThread.start();
@@ -199,6 +209,7 @@ public class ChatClient extends Application{
 			
 		}
 	}
+
 
 
 }
