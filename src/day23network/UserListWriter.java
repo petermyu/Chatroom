@@ -10,14 +10,16 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class UserListWriter {
 	private static int clientNo;
 	private String path;
 	private File file;
-	public UserListWriter(String path){
+	public UserListWriter(String path, String name){
 		this.path = path;
-		file = new File(path+ "whitelist.txt");
+		
+		file = new File(path+ name+ ".txt");
 		// if file doesnt exists, then create it
 		if (!file.exists()) {
 			try {
@@ -52,7 +54,6 @@ public class UserListWriter {
 		try {
 			
 			String content = username;
-			File file = new File(path+ "whitelist.txt");
 			// if file doesnt exists, then create it
 			if (!file.exists()) {
 				file.createNewFile();
@@ -87,5 +88,35 @@ public class UserListWriter {
 		}
 		return userList;
 		
+	}
+	public String readString(){
+		try {
+			@SuppressWarnings("resource")
+			Scanner scan = new Scanner(file);
+			System.out.println("has next: " + scan.hasNextLine());
+			String r= scan.nextLine();
+			return r;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			return "exception";
+		}
+		
+	}
+	public void addArrayList(ArrayList<String> list){
+		try{
+		// if file doesnt exists, then create it
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+		FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		BufferedWriter bw = new BufferedWriter(fw);
+		for(String user : list){
+			bw.write(user+"\n");
+		}
+		bw.close();
+
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
 	}
 }

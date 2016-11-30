@@ -13,7 +13,7 @@ public class UserListObserver implements Observer{
 	@Override
 	public void update(Observable o, Object arg) {
 		// TODO Auto-generated method stub
-		UserListWriter newList = new UserListWriter(path);
+		UserListWriter newList = new UserListWriter(path, "whitelist");
 		ArrayList<String> userList = newList.readUsers();
 		System.out.println(userList);
 		ChatClient.activeList.setItems(FXCollections.observableArrayList(userList));

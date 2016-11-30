@@ -2,6 +2,7 @@ package day23network;
 
 import java.io.*;
 import java.net.*;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
 import javafx.application.Application;
@@ -43,9 +45,8 @@ public class ChatClient extends Application{
 	private PrintWriter infoWriter;
 	private static String chatText = "";
 	private String username;
-	private static List<String> usernameList = new ArrayList<String>();
 	private TextArea chatField = new TextArea();
-	private String path = new File("Chatroom/src/").getParent();
+	static String path = new File("Chatroom/src/").getParent();
 	private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss");
 	static UserListObservable userObservable = new UserListObservable();
 	static ListView<String> activeList = new ListView<String>();
@@ -77,16 +78,10 @@ public class ChatClient extends Application{
             @Override
             public void handle(ActionEvent event) {
             	username = userName.getText();
-            	usernameList.add(username);
             	
             //	writer.println(username);
             //	writer.flush();
-       		try {
-    			setUpNetworking();
-    		} catch (Exception e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		}
+
             	chatSelectPane(primaryStage);
             }
         });
@@ -114,6 +109,12 @@ public class ChatClient extends Application{
 		grid.setHgap(10);
 		grid.setVgap(10);
 		activeList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		UserListWriter userWriter = new UserListWriter(path,"whitelist");
+		UserListObserver observer = new UserListObserver(path);
+		userWriter.addUser(username);
+		MultiThreadServer.ovUser.addObserver(observer);
+		MultiThreadServer.ovUser.setChange();
+		
 		Button createChat = new Button();
 		createChat.setText("Create Chat");
 		createChat.setOnAction(new EventHandler<ActionEvent>() {
@@ -141,7 +142,25 @@ public class ChatClient extends Application{
 		grid.setHgap(10);
 		grid.setVgap(10);
 		TextField inputMessage = new TextField();
-		
+		ArrayList<String> findList = new ArrayList<String>(selectedList);
+		UserListWriter newWriter = new UserListWriter(path, "selected_list");
+		newWriter.addArrayList(findList);
+   		try {
+			setUpNetworking();
+			TimeUnit.MILLISECONDS.sleep(500);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+   		finally{
+		UserListWriter cWriter = new UserListWriter(path, "client_info");
+		String client = cWriter.readString();
+	//	int clientinfo =  cWriter.readString();
+		System.out.println(client);
+		int clientinfo = Integer.parseInt(client);
+		System.out.println("Client info: " +clientinfo);
+		inputMessage.setUserData(clientinfo);
+   		}
 		chatField.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		chatField.setText("");
 		Button send = new Button();
@@ -157,6 +176,7 @@ public class ChatClient extends Application{
             @Override
             public void handle(ActionEvent event) {
             	if(inputMessage.getText() != null){
+            		String time = "[" + sdf.format(new Timestamp(new Date().getTime())) + "]";
 	            	writer.println(username + " > " +inputMessage.getText());
 	            	System.out.println(username);
 	        		writer.flush();
@@ -174,6 +194,9 @@ public class ChatClient extends Application{
 		        	String time = "[" + sdf.format(new Timestamp(new Date().getTime())) + "]";
 		        	writer.println(username + " " + time + " "+ " > " + inputMessage.getText());
 	        		writer.flush();
+	        		System.out.println(inputMessage.getUserData());
+	        		infoWriter.println(inputMessage.getUserData());
+	        		infoWriter.flush();
 	        		inputMessage.clear();
 		        	}
 	        	}
@@ -228,12 +251,7 @@ public class ChatClient extends Application{
 		writer.flush();
 		InetAddress inetAddress = sock.getInetAddress();
 		System.out.println(path);
-		UserListWriter userWriter = new UserListWriter(path);
-		UserListObserver observer = new UserListObserver(path);
-		userWriter.addUser(username);
-		MultiThreadServer.ovUser.addObserver(observer);
-		MultiThreadServer.ovUser.setChange();
-		
+
 		System.out.println();
 		
 		

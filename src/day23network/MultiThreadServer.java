@@ -4,6 +4,7 @@ package day23network;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -25,22 +26,53 @@ public class MultiThreadServer extends Application
 	private TextArea ta = new TextArea(); 
 	static ArrayList<PrintWriter> clientOutputStreams;
 	// Number a client 
-	private int clientNo = 0; 
+	private int clientNo; 
+	
 	private List<String> clientList = new ArrayList<String>();
 	private Map<Integer,String> userMap = new HashMap<Integer,String>();
 	private String message;
+	private List<String> usernameList = new ArrayList<String>();
 	private ArrayList<String> activeUserList = new ArrayList<String>();
 	static ClientObservable ov = new ClientObservable();
 	static UserListObservable ovUser = new UserListObservable();
+	static HashMap<String,UserListObservable> observableMap = new HashMap<String,UserListObservable>();
+	static HashMap<String,PrintWriter> writerMap = new HashMap<String,PrintWriter>();
+	private static HashMap<ArrayList<String>,Integer> chatMap = new HashMap<ArrayList<String>,Integer>();
 //	static UserListWriter userWriter = new UserListWriter(new File("src/").getParent());
-	public static ArrayList<PrintWriter> getclientOutputStreams(){
-		return clientOutputStreams;
+	public int getClientInfo(ArrayList<String> selectedList){
+
+		Collections.sort(selectedList);
+		for(ArrayList<String> compare : chatMap.keySet()){
+			Collections.sort(compare);
+			if(compare.equals(selectedList)){
+				System.out.println("clients :" + clientNo);
+				return chatMap.get(compare);
+			}
+		}
+		chatMap.put(selectedList, clientNo);
+		UserListWriter cW = new UserListWriter(ChatClient.path,"client_info");
+		
+		cW.addUser(Integer.toString(clientNo));
+		clientNo++;
+		System.out.println("clients : " + clientNo);
+		return chatMap.get(selectedList);
+		
 	}
-	public void addUser(int clientID, String username){
-		userMap.put(clientID, username);
-		System.out.print("users: " + userMap.size());
-		activeUserList.add(username);
-		System.out.println("list : " + activeUserList.size());
+	public void setUserList(String path,PrintWriter writer){
+		UserListWriter newWriter = new UserListWriter(path,"whitelist");
+		ArrayList<String> users = newWriter.readUsers();
+		for(String name : users){
+			if(!usernameList.contains(name)){
+				usernameList.add(name);
+				writerMap.put(name, writer);
+			}
+		}
+	}
+	public void setWriterMap(ArrayList<String> users){
+		
+		if(!writerMap.containsKey(users)){
+			
+		}
 	}
 	@Override // Override the start method in the Application class 
 	public void start(Stage primaryStage) { 
@@ -68,21 +100,31 @@ public class MultiThreadServer extends Application
 				while (true) { 
 					// Listen for a new connection request 
 					Socket socket = serverSocket.accept(); 
+					Socket infoSocket = serverSocket.accept();
 					//PrintWriter writer = new PrintWriter(socket.getOutputStream());
 					ClientObserver writer = new ClientObserver(socket.getOutputStream());
+					ClientObserver infoWriter = new ClientObserver(infoSocket.getOutputStream());
 					InetAddress inetAddress = socket.getInetAddress();
+					setUserList(ChatClient.path,writer);
+			//		setWriterMap();
 					clientOutputStreams.add(writer);
 					ov.addObserver(writer);
+					UserListWriter newWriter = new UserListWriter(ChatClient.path,"selected_list");
+					ArrayList<String> list = newWriter.readUsers();
+					getClientInfo(list);
 					//activeUserList = ChatClient.usernameList;
 					System.out.println("active users:" + activeUserList.size());
 					// Create and start a new thread for the connection
-					new Thread(new HandleAClient(inetAddress.getHostName(),socket)).start();
+					new Thread(new HandleAClient(inetAddress.getHostName(),socket,infoSocket)).start();
 				}
 			} 
 			catch(IOException ex) { 
 				System.err.println(ex);
 			}
 		}).start();
+	}
+	public UserListObservable getObservable(String key){
+		return null;
 	}
 	// Define the thread class for handling
 	class HandleAClient extends Observable implements Runnable {
@@ -91,7 +133,7 @@ public class MultiThreadServer extends Application
 		private boolean flag;
 		private String hostname;
 		/** Construct a thread */ 
-		public HandleAClient(String hostname, Socket socket) throws IOException { 
+		public HandleAClient(String hostname, Socket socket, Socket infoSocket) throws IOException { 
 			this.socket = socket;
 			this.flag = false;
 			this.hostname = hostname;
