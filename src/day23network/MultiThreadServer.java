@@ -34,6 +34,7 @@ public class MultiThreadServer extends Application
 	private List<String> usernameList = new ArrayList<String>();
 	private ArrayList<String> activeUserList = new ArrayList<String>();
 	static ClientObservable ov = new ClientObservable();
+	static ClientObservable ovCI = new ClientObservable();
 	static UserListObservable ovUser = new UserListObservable();
 	static HashMap<String,UserListObservable> observableMap = new HashMap<String,UserListObservable>();
 	static HashMap<String,PrintWriter> writerMap = new HashMap<String,PrintWriter>();
@@ -109,6 +110,7 @@ public class MultiThreadServer extends Application
 			//		setWriterMap();
 					clientOutputStreams.add(writer);
 					ov.addObserver(writer);
+					ovCI.addObserver(infoWriter);
 					UserListWriter newWriter = new UserListWriter(ChatClient.path,"selected_list");
 					ArrayList<String> list = newWriter.readUsers();
 					getClientInfo(list);
@@ -130,6 +132,7 @@ public class MultiThreadServer extends Application
 	class HandleAClient extends Observable implements Runnable {
 		private Socket socket; // A connected socket
 		private BufferedReader reader;
+		private BufferedReader infoReader;
 		private boolean flag;
 		private String hostname;
 		/** Construct a thread */ 
@@ -138,6 +141,7 @@ public class MultiThreadServer extends Application
 			this.flag = false;
 			this.hostname = hostname;
 			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			infoReader = new BufferedReader(new InputStreamReader(infoSocket.getInputStream()));
 		}
 		/** Run a thread */
 		public void run() { 
@@ -147,7 +151,12 @@ public class MultiThreadServer extends Application
 					System.out.println("read " + message);
 					System.out.println(ov.countObservers());
 					ov.setChange();
-					ov.notifyObservers(message);	
+					ov.notifyObservers(message);
+					message = infoReader.readLine();
+						System.out.println("readinfo " + message);
+						ovCI.setChange();
+						ovCI.notifyObservers(message);
+					
 					}
 			} catch (IOException e) {
 				e.printStackTrace();

@@ -152,7 +152,7 @@ public class ChatClient extends Application{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-   		finally{
+
 		UserListWriter cWriter = new UserListWriter(path, "client_info");
 		String client = cWriter.readString();
 	//	int clientinfo =  cWriter.readString();
@@ -160,9 +160,16 @@ public class ChatClient extends Application{
 		int clientinfo = Integer.parseInt(client);
 		System.out.println("Client info: " +clientinfo);
 		inputMessage.setUserData(clientinfo);
-   		}
+   		
 		chatField.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		chatField.setText("");
+		chatField.setUserData(clientinfo);
+		//send username before chat starts
+		Timestamp ts = new Timestamp(new Date().getTime());
+		writer.println(username + " joined the chat" + " [" + ts + "]");
+		writer.flush();
+		infoWriter.println(clientinfo);
+		infoWriter.flush();
 		Button send = new Button();
 		send.setText("Send");
 		grid.add(chatField, 1, 0);
@@ -205,12 +212,22 @@ public class ChatClient extends Application{
 		Task task = new Task<Void>() {
 		    @Override public Void call() {
 		    	String response;
+		    	String clientinfo;
 				try {
-					response = reader.readLine();
 					synchronized(reader){
 					while ((response = reader.readLine()) != null) {
 						System.out.println("received " + response);
-						chatField.appendText(response + "\n");
+						
+						clientinfo  = infoReader.readLine();
+							System.out.println("received CI: " + clientinfo);
+							System.out.println("userdata : " +chatField.getUserData());
+							int userData = (int) chatField.getUserData();
+							if(userData == Integer.parseInt(clientinfo)){
+							chatField.appendText(response + "\n");
+							}
+						
+						
+						
 					}
 					/*if(inputMessage.getText() == null){
 						send.setDisable(true);
@@ -245,10 +262,8 @@ public class ChatClient extends Application{
 		infoReader = new BufferedReader(infoStreamReader);
 		infoWriter = new PrintWriter(messageSocket.getOutputStream());
 		System.out.println("networking established");
-		//send username before chat starts
-		Timestamp ts = new Timestamp(new Date().getTime());
-		writer.println(username + " joined the chat" + " [" + ts + "]");
-		writer.flush();
+	
+		
 		InetAddress inetAddress = sock.getInetAddress();
 		System.out.println(path);
 
