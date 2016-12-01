@@ -45,6 +45,7 @@ public class ChatClient extends Application{
 	private PrintWriter infoWriter;
 	private static String chatText = "";
 	private String username;
+	private String IPAddress;
 	
 	static String path = new File("Chatroom/src/").getParent();
 	private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss");
@@ -68,19 +69,22 @@ public class ChatClient extends Application{
 		Text pword = new Text();
 		Button login = new Button();
 		Button register = new Button();
-		
+		TextField setIP = new TextField();
+		Text ip = new Text();
+		ip.setText("IP Addr : ");
 		user.setText("Username : ");
 		pword.setText("Password : ");
 		password.setDisable(true);
 		
 		login.setText("Login");
 		register.setText("Register");
+	
 		
 		login.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
             	username = userName.getText();
-            	
+            	IPAddress = setIP.getText();
             //	writer.println(username);
             //	writer.flush();
 
@@ -91,11 +95,13 @@ public class ChatClient extends Application{
 		grid.setHgap(10);
 		grid.setVgap(10);
 		grid.add(userName, 2, 0);
-		grid.add(password, 2, 3);
+//		grid.add(password, 2, 3);
 		grid.add(user, 1, 0);
-		grid.add(pword, 1, 3);
+//		grid.add(pword, 1, 3);
 		grid.add(login, 2, 4);
 		grid.add(register, 3, 4);
+		grid.add(ip, 1, 3);
+		grid.add(setIP, 2, 3);
 		Scene scene = new Scene(grid, 500,500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
@@ -167,8 +173,8 @@ public class ChatClient extends Application{
 
 	private void setUpNetworking(ArrayList<String> selectedList) throws Exception {
 		@SuppressWarnings("resource")
-		Socket sock = new Socket("10.146.230.107", 8000);
-		Socket messageSocket = new Socket("10.146.230.107",8000);
+		Socket sock = new Socket(IPAddress, 8000);
+		Socket messageSocket = new Socket(IPAddress,8000);
 		InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
 		InputStreamReader infoStreamReader = new InputStreamReader(messageSocket.getInputStream());
 		reader = new BufferedReader(streamReader);
