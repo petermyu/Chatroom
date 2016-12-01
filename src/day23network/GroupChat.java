@@ -51,9 +51,6 @@ public class GroupChat extends Application{
 			grid.setVgap(10);
 			TextArea chatField = new TextArea();
 			TextField inputMessage = new TextField();
-			ArrayList<String> findList = new ArrayList<String>(selectedList);
-			UserListWriter newWriter = new UserListWriter(ChatClient.path, "selected_list");
-			newWriter.addArrayList(findList);
 
 			UserListWriter cWriter = new UserListWriter(ChatClient.path, "client_info");
 			String client = cWriter.readString();

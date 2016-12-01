@@ -124,6 +124,10 @@ public class ChatClient extends Application{
             public void handle(ActionEvent event) {
             	ObservableList<String> selectedList = FXCollections.observableArrayList();
             	selectedList = activeList.getSelectionModel().getSelectedItems();
+    			ArrayList<String> findList = new ArrayList<String>(selectedList);
+    			UserListWriter newWriter = new UserListWriter(ChatClient.path, "selected_list");
+    			newWriter.addArrayList(findList);
+
             	try {
         			setUpNetworking();
         			TimeUnit.MILLISECONDS.sleep(200);
@@ -141,11 +145,12 @@ public class ChatClient extends Application{
 		refresh.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-            	
-            	
+        		UserListWriter newList = new UserListWriter(path, "whitelist");
+        		ArrayList<String> userList = newList.readUsers();
+        		activeList.setItems(FXCollections.observableArrayList(userList));
             }
         });
-		
+		grid.add(refresh, 1	, 2);
 		grid.add(activeList, 1, 1);
 		grid.add(createChat, 2, 2);
 		Scene scene = new Scene(grid,800,400);
