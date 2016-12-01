@@ -1,4 +1,4 @@
-package day23network;
+package assignment7;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;

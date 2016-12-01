@@ -1,11 +1,11 @@
-package day23network;
+package assignment7;
 
 public class ChatTester {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		MultiThreadServer.main(null);
-		ChatClient.launch(null);
+		MultiThreadServer.main(args);
+		ChatClient.main(args);
 	}
 
 }

@@ -1,4 +1,4 @@
-package day23network;
+package assignment7;
 
 import java.util.ArrayList;
 import java.util.Observable;

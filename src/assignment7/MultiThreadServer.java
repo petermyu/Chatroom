@@ -1,4 +1,4 @@
-package day23network;
+package assignment7;
 
 
 import java.io.*;
@@ -40,20 +40,42 @@ public class MultiThreadServer extends Application
 	static HashMap<String,PrintWriter> writerMap = new HashMap<String,PrintWriter>();
 	private static HashMap<ArrayList<String>,Integer> chatMap = new HashMap<ArrayList<String>,Integer>();
 //	static UserListWriter userWriter = new UserListWriter(new File("src/").getParent());
-	public int getClientInfo(ArrayList<String> selectedList){
-
+	public static ArrayList<String> parseSelectedList(BufferedReader reader){
+		String userLong;
+		ArrayList<String> list = new ArrayList<String>();
+		try {
+			userLong = reader.readLine();
+			String[] users = userLong.split(" ");
+			for(String user : users){
+				list.add(user);
+			}
+			
+			return list;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+		
+	}
+	public int getClientInfo(ArrayList<String> selectedList, ClientObserver infoWriter){
 		Collections.sort(selectedList);
 		for(ArrayList<String> compare : chatMap.keySet()){
 			Collections.sort(compare);
 			if(compare.equals(selectedList)){
 				System.out.println("clients :" + clientNo);
+				infoWriter.println(chatMap.get(selectedList));
+				infoWriter.flush();
 				return chatMap.get(compare);
 			}
 		}
 		chatMap.put(selectedList, clientNo);
-		UserListWriter cW = new UserListWriter(ChatClient.path,"client_info");
+		infoWriter.println(clientNo);
+		infoWriter.flush();
+	//	UserListWriter cW = new UserListWriter(ChatClient.path,"client_info");
 		
-		cW.updateClientText(Integer.toString(clientNo));
+	//	cW.updateClientText(Integer.toString(clientNo));
+		
 		clientNo++;
 		System.out.println("clients : " + clientNo);
 		return chatMap.get(selectedList);
@@ -67,12 +89,6 @@ public class MultiThreadServer extends Application
 				usernameList.add(name);
 				writerMap.put(name, writer);
 			}
-		}
-	}
-	public void setWriterMap(ArrayList<String> users){
-		
-		if(!writerMap.containsKey(users)){
-			
 		}
 	}
 	@Override // Override the start method in the Application class 
@@ -111,11 +127,13 @@ public class MultiThreadServer extends Application
 					clientOutputStreams.add(writer);
 					ov.addObserver(writer);
 					ovCI.addObserver(infoWriter);
-					UserListWriter newWriter = new UserListWriter(ChatClient.path,"selected_list");
+					BufferedReader infoReader = new BufferedReader(new InputStreamReader(infoSocket.getInputStream()));
+					int clientinfo = getClientInfo(parseSelectedList(infoReader),infoWriter);
+					System.out.println("server received client: " + clientinfo);
+				/*	UserListWriter newWriter = new UserListWriter(ChatClient.path,"selected_list");
 					ArrayList<String> list = newWriter.readUsers();
-					int clientinfo = getClientInfo(list);
 					UserListWriter cWriter = new UserListWriter(ChatClient.path, "client_info");
-					cWriter.updateClientText(Integer.toString(clientinfo));
+					cWriter.updateClientText(Integer.toString(clientinfo));*/
 					//activeUserList = ChatClient.usernameList;
 					System.out.println("active users:" + activeUserList.size());
 					// Create and start a new thread for the connection
@@ -166,12 +184,7 @@ public class MultiThreadServer extends Application
 			
 		}
 	}
-	public void addObserver(UserListObservable observer){
-		
-	}
-	public static void addUsername(String username){
-	//	userWriter.addUser(username);
-	}
+
 	public static void main(String[] args) {
 		launch(args);
 	}

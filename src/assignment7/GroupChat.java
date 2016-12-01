@@ -1,4 +1,4 @@
-package day23network;
+package assignment7;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,15 +33,19 @@ public class GroupChat extends Application{
 	private BufferedReader reader;
 	private String username;
 	private PrintWriter infoWriter;
+	private BufferedReader infoReader;
 	private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss");
-	public GroupChat(ArrayList<String> list, PrintWriter writer, BufferedReader reader, String username, PrintWriter infoWriter){
+	public GroupChat(ArrayList<String> list, PrintWriter writer, BufferedReader reader, String username, PrintWriter infoWriter, BufferedReader infoReader){
 		selectedList = list;
 		this.writer = writer;
 		this.reader = reader;
 		this.username = username; 
 		this.infoWriter = infoWriter;
+		this.infoReader = infoReader;
 	}
-
+	public static void main(String[] args){
+		launch(args);
+	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
@@ -52,9 +56,11 @@ public class GroupChat extends Application{
 			TextArea chatField = new TextArea();
 			TextField inputMessage = new TextField();
 
-			UserListWriter cWriter = new UserListWriter(ChatClient.path, "client_info");
-			String client = cWriter.readString();
+	//		UserListWriter cWriter = new UserListWriter(ChatClient.path, "client_info");
+		//	String client = cWriter.readString();
+			
 		//	int clientinfo =  cWriter.readString();
+			String client = infoReader.readLine();
 			System.out.println(client);
 			int clientinfo = Integer.parseInt(client);
 			System.out.println("Client info: " +clientinfo);
@@ -110,14 +116,13 @@ public class GroupChat extends Application{
 						synchronized(reader){
 						while ((response = reader.readLine()) != null) {
 							System.out.println("received " + response);
-							UserListWriter cWriter = new UserListWriter(ChatClient.path, "client_info");
-							clientinfo  = cWriter.readString();
-								System.out.println("received CI: " + clientinfo);
-								System.out.println("userdata : " +chatField.getUserData());
-								int userData = (int) chatField.getUserData();
-								if(userData == Integer.parseInt(clientinfo)){
-								chatField.appendText(response + "\n");
-								}
+							clientinfo  = infoReader.readLine();
+							System.out.println("received CI: " + clientinfo);
+							System.out.println("userdata : " +chatField.getUserData());
+							int userData = (int) chatField.getUserData();
+							if(userData == Integer.parseInt(clientinfo)){
+							chatField.appendText(response + "\n");
+							}
 							
 							
 							

@@ -1,4 +1,4 @@
-package day23network;
+package assignment7;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import day23network.MultiThreadServer.HandleAClient;
+import assignment7.MultiThreadServer.HandleAClient;
 
 public class ServerTask implements Runnable {
 
