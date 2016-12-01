@@ -50,12 +50,13 @@ public class GroupChat extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
 			Stage newStage =primaryStage;
+			newStage.setTitle("Chat with " + selectedList);
 			GridPane grid = new GridPane();
 			grid.setHgap(10);
 			grid.setVgap(10);
 			TextArea chatField = new TextArea();
 			TextField inputMessage = new TextField();
-
+			
 	//		UserListWriter cWriter = new UserListWriter(ChatClient.path, "client_info");
 		//	String client = cWriter.readString();
 			
@@ -79,16 +80,20 @@ public class GroupChat extends Application{
 			newStage.show();
 			
 			send.setOnAction(new EventHandler<ActionEvent>() {
-	            @Override
-	            public void handle(ActionEvent event) {
-	            	if(inputMessage.getText() != null){
-	            		String time = "[" + sdf.format(new Timestamp(new Date().getTime())) + "]";
-		            	writer.println(username + " > " +inputMessage.getText());
-		            	System.out.println(username);
+		        @Override
+		        public void handle(ActionEvent event)
+		        {
+		        	if(inputMessage.getText() != null){
+			        	String time = "[" + sdf.format(new Timestamp(new Date().getTime())) + "]";
+			        	writer.println(username + " " + time + " "+ " > " + inputMessage.getText());
 		        		writer.flush();
+		        		System.out.println("sending client: " + inputMessage.getUserData());
+		        		infoWriter.println(inputMessage.getUserData());
+		        		infoWriter.flush();
 		        		inputMessage.clear();
-	            	}
-	            }
+			        	}
+		        	
+		        }
 	        });
 			inputMessage.setOnKeyPressed(new EventHandler<KeyEvent>()
 		    {

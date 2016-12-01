@@ -62,6 +62,7 @@ public class ChatClient extends Application{
 	}
 
 	private void initView(Stage primaryStage) {
+		primaryStage.setTitle("Chatroom Client");
 		GridPane grid = new GridPane();
 		TextField userName = new TextField();
 		TextField password = new TextField();
@@ -124,6 +125,8 @@ public class ChatClient extends Application{
 		MultiThreadServer.ovUser.setChange();
 		Button createChat = new Button();
 		Button refresh = new Button();
+		Text users = new Text();
+		users.setText("Users");
 		refresh.setText("Refresh");
 		createChat.setText("Create Chat");
 		
@@ -158,9 +161,10 @@ public class ChatClient extends Application{
         		activeList.setItems(FXCollections.observableArrayList(userList));
             }
         });
-		grid.add(refresh, 1	, 2);
-		grid.add(activeList, 1, 1);
-		grid.add(createChat, 2, 2);
+		grid.add(refresh, 3	, 2);
+		grid.add(users, 1, 1);
+		grid.add(activeList, 1, 2);
+		grid.add(createChat, 3, 1);
 		Scene scene = new Scene(grid,800,400);
 		primaryStage.setScene(scene);
 		primaryStage.show();
