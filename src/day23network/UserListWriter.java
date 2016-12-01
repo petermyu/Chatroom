@@ -38,7 +38,7 @@ public class UserListWriter {
 				String entry;
 				BufferedReader reader = new BufferedReader(new FileReader(file));
 				while((entry = reader.readLine()) !=null){
-					if(entry == username){
+					if(entry.equals(username)){
 						return true;
 					}
 				}
@@ -51,8 +51,10 @@ public class UserListWriter {
 		
 	}
 	public void addUser(String username){
+		if(userExists(username)){
+			return;
+		}
 		try {
-			
 			String content = username;
 			// if file doesnt exists, then create it
 			if (!file.exists()) {
@@ -71,7 +73,31 @@ public class UserListWriter {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}	
+		
+	}
+	public void updateClientText(String text){
+		try {
+			String content = text;
+			// if file doesnt exists, then create it
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			if(userExists(text) || text == null){
+				return;
+			}
+			clientNo++;
+			FileWriter fw = new FileWriter(file.getAbsoluteFile());
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(content+"\n");
+		
+			bw.close();
+			System.out.println("added :" + text + " to file at " + path);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+		
 	}
 	public ArrayList<String> readUsers(){
 		String sCurrentLine;

@@ -45,7 +45,7 @@ public class ChatClient extends Application{
 	private PrintWriter infoWriter;
 	private static String chatText = "";
 	private String username;
-	private TextArea chatField = new TextArea();
+	
 	static String path = new File("Chatroom/src/").getParent();
 	private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss");
 	static UserListObservable userObservable = new UserListObservable();
@@ -114,15 +114,35 @@ public class ChatClient extends Application{
 		userWriter.addUser(username);
 		MultiThreadServer.ovUser.addObserver(observer);
 		MultiThreadServer.ovUser.setChange();
-		
 		Button createChat = new Button();
+		Button refresh = new Button();
+		refresh.setText("Refresh");
 		createChat.setText("Create Chat");
+		
 		createChat.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
             	ObservableList<String> selectedList = FXCollections.observableArrayList();
             	selectedList = activeList.getSelectionModel().getSelectedItems();
-            	setGroupChatPane(selectedList);
+            	try {
+        			setUpNetworking();
+        			TimeUnit.MILLISECONDS.sleep(200);
+        			GroupChat newChat = new GroupChat(new ArrayList<String>(selectedList), writer, reader, username, infoWriter);
+        			newChat.start(new Stage());
+        		} catch (Exception e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		}
+
+            //	setGroupChatPane(selectedList);
+            	
+            }
+        });
+		refresh.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+            	
+            	
             }
         });
 		
@@ -141,13 +161,14 @@ public class ChatClient extends Application{
 		GridPane grid = new GridPane();
 		grid.setHgap(10);
 		grid.setVgap(10);
+		TextArea chatField = new TextArea();
 		TextField inputMessage = new TextField();
 		ArrayList<String> findList = new ArrayList<String>(selectedList);
 		UserListWriter newWriter = new UserListWriter(path, "selected_list");
 		newWriter.addArrayList(findList);
    		try {
 			setUpNetworking();
-			TimeUnit.MILLISECONDS.sleep(500);
+			TimeUnit.MILLISECONDS.sleep(200);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -164,12 +185,6 @@ public class ChatClient extends Application{
 		chatField.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 		chatField.setText("");
 		chatField.setUserData(clientinfo);
-		//send username before chat starts
-		Timestamp ts = new Timestamp(new Date().getTime());
-		writer.println(username + " joined the chat" + " [" + ts + "]");
-		writer.flush();
-		infoWriter.println(clientinfo);
-		infoWriter.flush();
 		Button send = new Button();
 		send.setText("Send");
 		grid.add(chatField, 1, 0);
@@ -201,7 +216,7 @@ public class ChatClient extends Application{
 		        	String time = "[" + sdf.format(new Timestamp(new Date().getTime())) + "]";
 		        	writer.println(username + " " + time + " "+ " > " + inputMessage.getText());
 	        		writer.flush();
-	        		System.out.println(inputMessage.getUserData());
+	        		System.out.println("sending client: " + inputMessage.getUserData());
 	        		infoWriter.println(inputMessage.getUserData());
 	        		infoWriter.flush();
 	        		inputMessage.clear();
@@ -217,8 +232,8 @@ public class ChatClient extends Application{
 					synchronized(reader){
 					while ((response = reader.readLine()) != null) {
 						System.out.println("received " + response);
-						
-						clientinfo  = infoReader.readLine();
+						UserListWriter cWriter = new UserListWriter(path, "client_info");
+						clientinfo  = cWriter.readString();
 							System.out.println("received CI: " + clientinfo);
 							System.out.println("userdata : " +chatField.getUserData());
 							int userData = (int) chatField.getUserData();
@@ -247,7 +262,7 @@ public class ChatClient extends Application{
 		};	
 		Thread updatechat = new Thread(task);
 		updatechat.start();
-	//	updatechat.setPriority(Thread.MAX_PRIORITY);
+		updatechat.setPriority(Thread.MAX_PRIORITY);
 
 	}
 

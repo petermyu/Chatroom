@@ -53,7 +53,7 @@ public class MultiThreadServer extends Application
 		chatMap.put(selectedList, clientNo);
 		UserListWriter cW = new UserListWriter(ChatClient.path,"client_info");
 		
-		cW.addUser(Integer.toString(clientNo));
+		cW.updateClientText(Integer.toString(clientNo));
 		clientNo++;
 		System.out.println("clients : " + clientNo);
 		return chatMap.get(selectedList);
@@ -113,7 +113,9 @@ public class MultiThreadServer extends Application
 					ovCI.addObserver(infoWriter);
 					UserListWriter newWriter = new UserListWriter(ChatClient.path,"selected_list");
 					ArrayList<String> list = newWriter.readUsers();
-					getClientInfo(list);
+					int clientinfo = getClientInfo(list);
+					UserListWriter cWriter = new UserListWriter(ChatClient.path, "client_info");
+					cWriter.updateClientText(Integer.toString(clientinfo));
 					//activeUserList = ChatClient.usernameList;
 					System.out.println("active users:" + activeUserList.size());
 					// Create and start a new thread for the connection
