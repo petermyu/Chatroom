@@ -158,6 +158,7 @@ public class ChatClient extends Application{
             public void handle(ActionEvent event) {
         		UserListWriter newList = new UserListWriter(path, "whitelist");
         		ArrayList<String> userList = newList.readUsers();
+        		userList.remove(username);
         		activeList.setItems(FXCollections.observableArrayList(userList));
             }
         });
@@ -173,8 +174,6 @@ public class ChatClient extends Application{
 
 		
 	}
-	
-
 	private void setUpNetworking(ArrayList<String> selectedList) throws Exception {
 		@SuppressWarnings("resource")
 		Socket sock = new Socket(IPAddress, 8000);
@@ -186,15 +185,19 @@ public class ChatClient extends Application{
 		infoReader = new BufferedReader(infoStreamReader);
 		infoWriter = new PrintWriter(messageSocket.getOutputStream());
 		System.out.println("networking established");
-	
+		
 		//send list of selected users
+		selectedList.add(username);
 		String concat = "";
-		for(String user : selectedList){
-			concat.concat(user + " ");
+		System.out.println("chosen list " +selectedList);
+		
+		for(int i = 0;i<selectedList.size();i++){
+			concat = concat + selectedList.get(i) + " ";
+		//	concat.concat(selectedList.get(i) + " ");
 		}
+		System.out.println("concat " + concat);
 		infoWriter.println(concat);
 		infoWriter.flush();
-		
 		InetAddress inetAddress = sock.getInetAddress();
 		System.out.println(path);
 

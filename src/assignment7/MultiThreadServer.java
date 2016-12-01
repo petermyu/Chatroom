@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -98,16 +99,6 @@ public class MultiThreadServer extends Application
 		primaryStage.setTitle("MultiThreadServer"); // Set the stage title 
 		primaryStage.setScene(scene); // Place the scene in the stage 
 		primaryStage.show(); // Display the stage 
-		/*ServerTask newConnection = new ServerTask();
-		try {
-			new Thread(new HandleAClient(newConnection.getAddress(),newConnection.getSocket()));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		new Thread(newConnection).start();*/
-		
-		
 		new Thread( () -> { 
 			try {  // Create a server socket 
 				ServerSocket serverSocket = new ServerSocket(8000); 
@@ -123,6 +114,7 @@ public class MultiThreadServer extends Application
 					ClientObserver infoWriter = new ClientObserver(infoSocket.getOutputStream());
 					InetAddress inetAddress = socket.getInetAddress();
 					setUserList(ChatClient.path,writer);
+					TimeUnit.MILLISECONDS.sleep(200);
 			//		setWriterMap();
 					clientOutputStreams.add(writer);
 					ov.addObserver(writer);
@@ -140,7 +132,7 @@ public class MultiThreadServer extends Application
 					new Thread(new HandleAClient(inetAddress.getHostName(),socket,infoSocket)).start();
 				}
 			} 
-			catch(IOException ex) { 
+			catch(IOException | InterruptedException ex) { 
 				System.err.println(ex);
 			}
 		}).start();
